@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>11111111111111111111111111111111111111111</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: black;
+      color: white;
+    }
+    #message {
+      font-size: 20px;
+      margin-top: 50px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>1111111111111111111111111111111111</h1>
+  <div id="message">111111111111111111111111111</div>
+
+  <script>
+    function randomAnnoyance() {
+      const annoyances = [
+        () => alert("1111111111111111111111111111111"),
+        () => {
+          const msg = document.getElementById("message");
+          msg.style.fontSize = (Math.random() * 50 + 10) + "px";
+          msg.textContent = "111111111111111111111111111111111111111";
+        },
+        () => {
+          const x = Math.floor(Math.random() * window.innerWidth);
+          const y = Math.floor(Math.random() * window.innerHeight);
+          window.scrollTo(x, y);
+        },
+        () => {
+          document.title = "111111111111111111111111111111111111111 " + Math.floor(Math.random()*100);
+        }
+      ];
+      const choice = annoyances[Math.floor(Math.random() * annoyances.length)];
+      choice();
+    }
+
+   setInterval(randomAnnoyance, 3000);
+
+   function popupImage() {
+      const popup = window.open("", "_blank", "width=400,height=400");
+      if (popup) {
+        popup.document.write(`
+          <html>
+            <head><title>1111111111111111111111111111111111111111</title></head>
+            <body style="margin:0;display:flex;align-items:center;justify-content:center;background:black;">
+              <img src="https://files.catbox.moe/djef3d.png" style="max-width:100%;max-height:100%;">
+            </body>
+          </html>
+        `);
+      }
+    }
+
+    setInterval(popupImage, 3000);
+  </script>
+</body>
+</html>
