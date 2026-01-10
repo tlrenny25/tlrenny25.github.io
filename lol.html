@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LOL</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+      color: white;
+    }
+    img {
+      width: 300px;
+      height: auto;
+    }
+    button {
+      margin-top: 20px;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <img id="idiotImage" src="idiot-black.png" alt="You Are An Idiot">
+  <button id="muteBtn">?? Mute</button>
+
+  <audio id="idiotAudio" autoplay loop>
+    <source src="idiot.ogg" type="audio/ogg">
+    <source src="idiot.wav" type="audio/wav">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const image = document.getElementById("idiotImage");
+    const audio = document.getElementById("idiotAudio");
+    const muteBtn = document.getElementById("muteBtn");
+    const images = ["idiot-black.png", "idiot-white.png"];
+    let index = 0;
+
+    // Alternate image every 0.5 seconds
+    setInterval(() => {
+      index = (index + 1) % images.length;
+      image.src = images[index];
+    }, 500);
+
+    // Mute/unmute toggle
+    muteBtn.onclick = () => {
+      audio.muted = !audio.muted;
+      muteBtn.textContent = audio.muted ? "?? Unmute" : "?? Mute";
+    };
+
+    // Smooth movement every 0.1 seconds
+    let x = window.screenX;
+    let y = window.screenY;
+    let dx = 5;
+    let dy = 5;
+
+    setInterval(() => {
+      x += dx;
+      y += dy;
+
+      if (x <= 0 || x >= screen.width - window.outerWidth) dx *= -1;
+      if (y <= 0 || y >= screen.height - window.outerHeight) dy *= -1;
+
+      try {
+        window.moveTo(x, y);
+      } catch (e) {}
+    }, 100);
+  </script>
+</body>
+</html>
