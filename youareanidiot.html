@@ -32,9 +32,7 @@
       height: 100%;
       pointer-events: none;
     }
-    img {
-      width: 300px;
-    }
+    img { width: 300px; }
     button {
       margin-top: 20px;
       padding: 8px 16px;
@@ -56,7 +54,6 @@
   <audio id="idiotAudio" autoplay loop>
     <source src="idiot.ogg" type="audio/ogg">
     <source src="idiot.wav" type="audio/wav">
-    Your browser does not support the audio element.
   </audio>
 
   <script>
@@ -66,27 +63,37 @@
     const clickbox = document.getElementById("clickbox");
     const images = ["idiot-black.png", "idiot-white.png"];
     let index = 0;
+    let started = false;
 
-    // Image flashing (unchanged)
+    // Flashing images
     setInterval(() => {
       index = (index + 1) % images.length;
       image.src = images[index];
     }, 500);
 
-    // Mute toggle (unchanged)
+    // Mute
     muteBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       audio.muted = !audio.muted;
       muteBtn.textContent = audio.muted ? "?? Unmute" : "?? Mute";
     });
 
-    // SAFE: Only ONE popup per click
     clickbox.addEventListener("click", () => {
-      const w = 220;
-      const h = 170;
-      const left = Math.floor(Math.random() * (screen.width - w));
-      const top = Math.floor(Math.random() * (screen.height - h));
-      window.open("lol.html", "", `width=${w},height=${h},left=${left},top=${top}`);
+      if (!started) {
+        started = true;
+
+        const w = 308;
+        const h = 308;
+
+        function openPopup() {
+          const left = Math.floor(Math.random() * (screen.width - w));
+          const top = Math.floor(Math.random() * (screen.height - h));
+          window.open("lol.html", "", `width=${w},height=${h},left=${left},top=${top}`);
+        }
+
+        openPopup();               // first immediately
+        setInterval(openPopup, 10000); // then every 10s
+      }
     });
   </script>
 </body>
