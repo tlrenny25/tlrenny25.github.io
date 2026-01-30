@@ -16,7 +16,7 @@
       overflow: hidden;
     }
     img {
-      width: 230px; /* scaled with window */
+      width: 240px;
       height: auto;
     }
     button {
@@ -37,8 +37,7 @@
   </audio>
 
   <script>
-    // Size = 280x210 → +10%
-    window.resizeTo(308, 231);
+    window.resizeTo(308, 308);
 
     const image = document.getElementById("idiotImage");
     const audio = document.getElementById("idiotAudio");
@@ -56,7 +55,6 @@
       muteBtn.textContent = audio.muted ? "?? Unmute" : "?? Mute";
     };
 
-    // Fast chaotic movement (unchanged)
     let x = window.screenX;
     let y = window.screenY;
     let dx = 14;
