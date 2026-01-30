@@ -20,7 +20,7 @@
       width: 100%;
       height: 100%;
       z-index: 1;
-      cursor: pointer; /* THIS makes the cursor a pointing hand */
+      cursor: pointer;
     }
     #content {
       position: relative;
@@ -30,7 +30,7 @@
       justify-content: center;
       align-items: center;
       height: 100%;
-      pointer-events: none; /* Prevents blocking the clickbox */
+      pointer-events: none;
     }
     img {
       width: 300px;
@@ -41,7 +41,7 @@
       font-size: 14px;
       cursor: pointer;
       z-index: 3;
-      pointer-events: auto; /* Allows mute button to be clickable */
+      pointer-events: auto;
     }
   </style>
 </head>
@@ -66,33 +66,27 @@
     const clickbox = document.getElementById("clickbox");
     const images = ["idiot-black.png", "idiot-white.png"];
     let index = 0;
-    let popupIntervalStarted = false;
 
-    // Alternate image every 0.5 seconds
+    // Image flashing (unchanged)
     setInterval(() => {
       index = (index + 1) % images.length;
       image.src = images[index];
     }, 500);
 
-    // Mute/unmute toggle
+    // Mute toggle (unchanged)
     muteBtn.addEventListener("click", (e) => {
-      e.stopPropagation(); // Prevent popup trigger
+      e.stopPropagation();
       audio.muted = !audio.muted;
       muteBtn.textContent = audio.muted ? "?? Unmute" : "?? Mute";
     });
 
-    // Start infinite popup loop on click
+    // SAFE: Only ONE popup per click
     clickbox.addEventListener("click", () => {
-      if (!popupIntervalStarted) {
-        popupIntervalStarted = true;
-        setInterval(() => {
-          const w = 400;
-          const h = 300;
-          const left = Math.floor(Math.random() * (screen.width - w));
-          const top = Math.floor(Math.random() * (screen.height - h));
-          window.open("lol.html", "", `width=${w},height=${h},left=${left},top=${top}`);
-        }, 3000); // Change interval if needed
-      }
+      const w = 220;
+      const h = 170;
+      const left = Math.floor(Math.random() * (screen.width - w));
+      const top = Math.floor(Math.random() * (screen.height - h));
+      window.open("lol.html", "", `width=${w},height=${h},left=${left},top=${top}`);
     });
   </script>
 </body>
