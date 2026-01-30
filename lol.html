@@ -13,15 +13,16 @@
       height: 100vh;
       font-family: sans-serif;
       color: white;
+      overflow: hidden;
     }
     img {
-      width: 300px;
+      width: 230px; /* scaled with window */
       height: auto;
     }
     button {
-      margin-top: 20px;
-      padding: 8px 16px;
-      font-size: 14px;
+      margin-top: 12px;
+      padding: 6px 12px;
+      font-size: 12px;
       cursor: pointer;
     }
   </style>
@@ -33,33 +34,33 @@
   <audio id="idiotAudio" autoplay loop>
     <source src="idiot.ogg" type="audio/ogg">
     <source src="idiot.wav" type="audio/wav">
-    Your browser does not support the audio element.
   </audio>
 
   <script>
+    // Size = 280x210 → +10%
+    window.resizeTo(308, 231);
+
     const image = document.getElementById("idiotImage");
     const audio = document.getElementById("idiotAudio");
     const muteBtn = document.getElementById("muteBtn");
     const images = ["idiot-black.png", "idiot-white.png"];
     let index = 0;
 
-    // Alternate image every 0.5 seconds
     setInterval(() => {
       index = (index + 1) % images.length;
       image.src = images[index];
     }, 500);
 
-    // Mute/unmute toggle
     muteBtn.onclick = () => {
       audio.muted = !audio.muted;
       muteBtn.textContent = audio.muted ? "?? Unmute" : "?? Mute";
     };
 
-    // Smooth movement every 0.1 seconds
+    // Fast chaotic movement (unchanged)
     let x = window.screenX;
     let y = window.screenY;
-    let dx = 5;
-    let dy = 5;
+    let dx = 14;
+    let dy = 14;
 
     setInterval(() => {
       x += dx;
@@ -68,10 +69,8 @@
       if (x <= 0 || x >= screen.width - window.outerWidth) dx *= -1;
       if (y <= 0 || y >= screen.height - window.outerHeight) dy *= -1;
 
-      try {
-        window.moveTo(x, y);
-      } catch (e) {}
-    }, 100);
+      try { window.moveTo(x, y); } catch (e) {}
+    }, 30);
   </script>
 </body>
 </html>
