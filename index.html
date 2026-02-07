@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notepad - Write & Save</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> Notepad</h1>
+            <p class="tagline">Write, Save & Organize Your Thoughts</p>
+        </div>
+
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <button id="darkModeToggle" class="btn btn-icon" title="Toggle Dark Mode"></button>
+                <button id="copyBtn" class="btn" title="Copy all text"> Copy</button>
+                <button id="downloadBtn" class="btn" title="Download as .txt file"> Download</button>
+                <button id="clearBtn" class="btn btn-danger" title="Clear all text"> Clear</button>
+            </div>
+
+            <div class="toolbar-section">
+                <label for="fontSize">Font Size:</label>
+                <input type="range" id="fontSize" min="12" max="24" value="16">
+                <span id="fontSizeValue">16px</span>
+            </div>
+
+            <div class="toolbar-section">
+                <button id="boldBtn" class="btn btn-format" title="Bold"><strong>B</strong></button>
+                <button id="italicBtn" class="btn btn-format" title="Italic"><em>I</em></button>
+                <button id="underlineBtn" class="btn btn-format" title="Underline"><u>U</u></button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <span>Words: <strong id="wordCount">0</strong></span>
+            <span>Characters: <strong id="charCount">0</strong></span>
+            <span>Lines: <strong id="lineCount">1</strong></span>
+            <span>Last saved: <strong id="lastSaved">Never</strong></span>
+        </div>
+
+        <textarea id="notepad" placeholder="Start typing... Your notes are automatically saved!"></textarea>
+
+        <div class="footer">
+            <p> Auto-saved to your browser • No data sent to servers</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
