@@ -3,82 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload.IT - File Upload Service</title>
+    <title>Upload.IT - File Upload Manager</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <h1 class="nav-logo"> Upload.IT</h1>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="index.html" class="nav-link active">Upload</a></li>
-                <li class="nav-item"><a href="temporary-storage.html" class="nav-link">Temporary Storage</a></li>
-            </ul>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                 Upload.IT
+            </div>
+            <nav>
+                <a href="index.html" class="nav-link active">Upload Files</a>
+                <a href="temporary-storage.html" class="nav-link">Temporary Storage</a>
+            </nav>
         </div>
-    </nav>
+    </header>
 
-    <main class="container">
-        <section class="upload-section">
-            <h2>Upload Your Files</h2>
-            
+    <!-- Main Content -->
+    <div class="container">
+        <main>
+            <h1> Upload Your Files</h1>
+            <p class="subtitle">Upload any file securely with auto-generated file IDs</p>
+
             <!-- NSFW Warning -->
-            <div class="warning-box nsfw-warning">
-                <strong> WARNING:</strong> NSFW files are <strong>STRICTLY NOT ALLOWED</strong>. 
-                Uploads containing adult content will be rejected and your session may be terminated.
+            <div class="warning-box">
+                <strong> WARNING - NSFW Content Prohibited</strong>
+                <p>NSFW (Not Safe For Work) files are <strong>STRICTLY NOT ALLOWED</strong>.</p>
+                <p>Uploading such content will result in immediate deletion and potential account restrictions.</p>
             </div>
 
-            <!-- Guidelines -->
+            <!-- Upload Guidelines -->
             <div class="info-box">
-                <strong> Upload Guidelines:</strong>
-                <ul>
-                    <li>Maximum file size: <strong>1 GB</strong></li>
-                    <li>.exe and executable files are <strong>NOT allowed</strong></li>
-                    <li>Supported formats: Images, Documents, Videos, Audio, Archives, and more</li>
-                    <li>Files are processed securely</li>
-                </ul>
+                <strong> Upload Guidelines</strong>
+                <p>✓ Maximum file size: <strong>1 GB</strong></p>
+                <p>✓ Executable files (.exe, .bat, .cmd, etc.) are blocked for security</p>
+                <p>✓ Each file gets a unique 6-character ID (000000-ZZZZZZ)</p>
+                <p>✓ Your original filename is preserved for reference</p>
             </div>
 
-            <form id="uploadForm" class="upload-form">
-                <div class="form-group">
-                    <label for="fileInput" class="file-label">
-                        <div class="file-input-wrapper">
-                            <span class="upload-icon"></span>
-                            <span class="upload-text">Click to select file or drag & drop</span>
-                        </div>
-                        <input 
-                            type="file" 
-                            id="fileInput" 
-                            class="file-input"
-                            required
-                        >
-                    </label>
-                    <p id="fileName" class="file-name"></p>
+            <!-- Status Message -->
+            <div id="message"></div>
+
+            <!-- Upload Form -->
+            <form id="uploadForm">
+                <!-- Drop Zone -->
+                <div class="form-section">
+                    <div id="dropZone">
+                        <div class="drop-icon"></div>
+                        <div class="drop-text">Drag and drop your file here</div>
+                        <div class="drop-subtext">or click to select</div>
+                        <input type="file" id="fileInput">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="fileDescription">File Description (Optional):</label>
+                <!-- File Preview -->
+                <div id="fileInfo"></div>
+
+                <!-- Description -->
+                <div class="form-section">
+                    <label for="fileDescription"> File Description (Optional)</label>
                     <textarea 
                         id="fileDescription" 
-                        class="file-description"
-                        placeholder="Add a description for your file..."
-                        rows="3"
+                        placeholder="Enter a description for this file (optional)..."
                     ></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Upload File</button>
+                <!-- NSFW Checkbox -->
+                <div class="form-section">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="nsfwWarning">
+                        <label for="nsfwWarning" class="checkbox-label">
+                            I confirm this file does NOT contain NSFW content and complies with all guidelines
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-section">
+                    <button type="submit" class="btn-primary">
+                         Upload File
+                    </button>
+                </div>
             </form>
 
-            <!-- Upload Status -->
-            <div id="uploadStatus" class="status-message" style="display: none;"></div>
-
-            <!-- Uploaded Files List -->
-            <div id="uploadedFilesList" class="files-section" style="display: none;">
-                <h3>Uploaded Files</h3>
-                <div id="filesList" class="files-container"></div>
+            <!-- Uploaded Files Section -->
+            <div style="margin-top: 4rem; border-top: 2px solid #e5e7eb; padding-top: 2rem;">
+                <h2 style="margin-bottom: 1.5rem;"> Uploaded Files</h2>
+                <div id="uploadedFilesList">
+                    <div class="empty-state">No files uploaded yet</div>
+                </div>
             </div>
-        </section>
-    </main>
+        </main>
+    </div>
 
     <script src="script.js"></script>
+    <script>
+        // Set active nav link
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.getAttribute('href') === currentPage) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            // Make drop zone clickable
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            dropZone.addEventListener('click', () => fileInput.click());
+        });
+    </script>
 </body>
 </html>
