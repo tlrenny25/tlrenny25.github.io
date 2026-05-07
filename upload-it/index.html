@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload.IT - File Upload Service</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-logo"> Upload.IT</h1>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html" class="nav-link active">Upload</a></li>
+                <li class="nav-item"><a href="temporary-storage.html" class="nav-link">Temporary Storage</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="upload-section">
+            <h2>Upload Your Files</h2>
+            
+            <!-- NSFW Warning -->
+            <div class="warning-box nsfw-warning">
+                <strong> WARNING:</strong> NSFW files are <strong>STRICTLY NOT ALLOWED</strong>. 
+                Uploads containing adult content will be rejected and your session may be terminated.
+            </div>
+
+            <!-- Guidelines -->
+            <div class="info-box">
+                <strong> Upload Guidelines:</strong>
+                <ul>
+                    <li>Maximum file size: <strong>1 GB</strong></li>
+                    <li>.exe and executable files are <strong>NOT allowed</strong></li>
+                    <li>Supported formats: Images, Documents, Videos, Audio, Archives, and more</li>
+                    <li>Files are processed securely</li>
+                </ul>
+            </div>
+
+            <form id="uploadForm" class="upload-form">
+                <div class="form-group">
+                    <label for="fileInput" class="file-label">
+                        <div class="file-input-wrapper">
+                            <span class="upload-icon"></span>
+                            <span class="upload-text">Click to select file or drag & drop</span>
+                        </div>
+                        <input 
+                            type="file" 
+                            id="fileInput" 
+                            class="file-input"
+                            required
+                        >
+                    </label>
+                    <p id="fileName" class="file-name"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="fileDescription">File Description (Optional):</label>
+                    <textarea 
+                        id="fileDescription" 
+                        class="file-description"
+                        placeholder="Add a description for your file..."
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Upload File</button>
+            </form>
+
+            <!-- Upload Status -->
+            <div id="uploadStatus" class="status-message" style="display: none;"></div>
+
+            <!-- Uploaded Files List -->
+            <div id="uploadedFilesList" class="files-section" style="display: none;">
+                <h3>Uploaded Files</h3>
+                <div id="filesList" class="files-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
