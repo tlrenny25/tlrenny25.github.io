@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporary Storage - Upload.IT</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-logo"> Upload.IT</h1>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html" class="nav-link">Upload</a></li>
+                <li class="nav-item"><a href="temporary-storage.html" class="nav-link active">Temporary Storage</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="temp-storage-section">
+            <h2>Temporary File Storage</h2>
+            
+            <!-- NSFW Warning -->
+            <div class="warning-box nsfw-warning">
+                <strong> WARNING:</strong> NSFW files are <strong>STRICTLY NOT ALLOWED</strong>. 
+                Uploads containing adult content will be rejected and your session may be terminated.
+            </div>
+
+            <!-- Guidelines -->
+            <div class="info-box">
+                <strong> Temporary Storage Info:</strong>
+                <ul>
+                    <li>Store files temporarily for <strong>1-5 minutes</strong></li>
+                    <li>Maximum file size: <strong>1 GB</strong></li>
+                    <li>Files are automatically deleted after expiration</li>
+                    <li>Access your stored files in real-time</li>
+                </ul>
+            </div>
+
+            <!-- Upload Form -->
+            <form id="tempUploadForm" class="upload-form">
+                <div class="form-group">
+                    <label for="tempFileInput" class="file-label">
+                        <div class="file-input-wrapper">
+                            <span class="upload-icon"></span>
+                            <span class="upload-text">Click to select file or drag & drop</span>
+                        </div>
+                        <input 
+                            type="file" 
+                            id="tempFileInput" 
+                            class="file-input"
+                            required
+                        >
+                    </label>
+                    <p id="tempFileName" class="file-name"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="expirationTime">Expiration Time (Minutes):</label>
+                    <select id="expirationTime" class="expiration-select" required>
+                        <option value="">Select duration...</option>
+                        <option value="1">1 minute</option>
+                        <option value="2">2 minutes</option>
+                        <option value="3">3 minutes</option>
+                        <option value="4">4 minutes</option>
+                        <option value="5">5 minutes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="tempFileDescription">File Description (Optional):</label>
+                    <textarea 
+                        id="tempFileDescription" 
+                        class="file-description"
+                        placeholder="Add a description for your file..."
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Upload to Temporary Storage</button>
+            </form>
+
+            <!-- Upload Status -->
+            <div id="tempUploadStatus" class="status-message" style="display: none;"></div>
+
+            <!-- Temporary Files List -->
+            <div id="tempFilesList" class="files-section" style="display: none;">
+                <h3> Your Temporary Files</h3>
+                <div id="tempFilesContainer" class="temp-files-container"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state">
+                <p> No temporary files stored yet</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
