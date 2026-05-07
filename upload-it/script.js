@@ -1,477 +1,416 @@
-// ==================== Global Configuration ====================
-const CONFIG = {
-    MAX_FILE_SIZE: 1 * 1024 * 1024 * 1024, // 1 GB in bytes
-    BLOCKED_EXTENSIONS: ['.exe', '.bat', '.cmd', '.com', '.msi', '.scr', '.vbs', '.js', '.jar', '.app', '.dll', '.sys'],
-    STORAGE_KEY: 'uploadedFiles',
-    TEMP_STORAGE_KEY: 'tempFiles',
-};
+// Upload.IT - File Upload Management System
+// Main JavaScript functionality
 
-// ==================== Initialize on Page Load ====================
+// ============================================================================
+// FILE ID GENERATION SYSTEM
+// ============================================================================
+
+/**
+ * Convert a number to the custom alphanumeric format (0-9 then A-Z, cycling)
+ * @param {number} num - The number to convert
+ * @returns {string} - The converted character
+ */
+function numberToChar(num) {
+    num = num % 36;
+    if (num < 10) {
+        return String.fromCharCode(48 + num); // 0-9
+    } else {
+        return String.fromCharCode(65 + num - 10); // A-Z
+    }
+}
+
+/**
+ * Generate a 6-character file ID based on file count
+ * Format: 000000 -> 000009 -> 00000A -> ... -> YYYYYY -> then 7 characters if needed
+ * @param {number} fileCount - The current file count
+ * @returns {string} - The generated 6-character ID
+ */
+function generateFileID(fileCount) {
+    let id = '';
+    let num = fileCount;
+    
+    // Generate up to 6 characters (or more if needed)
+    const maxChars = Math.max(6, Math.ceil(Math.log(fileCount + 1) / Math.log(36)));
+    
+    for (let i = 0; i < maxChars; i++) {
+        id = numberToChar(num) + id;
+        num = Math.floor(num / 36);
+        if (num === 0) break;
+    }
+    
+    // Pad with leading character (0 for first positions)
+    while (id.length < 6) {
+        id = '0' + id;
+    }
+    
+    return id;
+}
+
+/**
+ * Get the next file ID
+ * @returns {string} - The next 6+ character file ID
+ */
+function getNextFileID() {
+    let files = JSON.parse(localStorage.getItem('uploadedFiles')) || [];
+    return generateFileID(files.length);
+}
+
+// ============================================================================
+// FILE MANAGEMENT
+// ============================================================================
+
+const ALLOWED_EXTENSIONS = ['exe', 'bat', 'cmd', 'com', 'msi', 'scr', 'vbs', 'js', 'jar', 'zip', 'rar'];
+const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
+const BASE_URL = 'https://tlrenny25.github.io/upload-it/';
+
+/**
+ * Initialize Upload.IT on page load
+ */
 document.addEventListener('DOMContentLoaded', function() {
-    // Setup regular upload form
-    const uploadForm = document.getElementById('uploadForm');
-    if (uploadForm) {
-        setupRegularUpload();
-    }
-
-    // Setup temporary storage form
-    const tempForm = document.getElementById('tempUploadForm');
-    if (tempForm) {
-        setupTemporaryStorage();
-    }
-
-    // Display existing files on load
+    initializeUploadForm();
     displayUploadedFiles();
-    displayTemporaryFiles();
+    setupDragAndDrop();
 });
 
-// ==================== Regular Upload Setup ====================
-function setupRegularUpload() {
+/**
+ * Initialize the upload form
+ */
+function initializeUploadForm() {
     const form = document.getElementById('uploadForm');
+    if (form) {
+        form.addEventListener('submit', handleFileUpload);
+    }
+    
     const fileInput = document.getElementById('fileInput');
-    const fileNameDisplay = document.getElementById('fileName');
-
-    // File input change event
-    fileInput.addEventListener('change', function(e) {
-        displayFileName(e.target.files[0], fileNameDisplay);
-    });
-
-    // Drag and drop
-    setupDragAndDrop(document.querySelector('.file-input-wrapper'), fileInput);
-
-    // Form submission
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        handleFileUpload();
-    });
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileSelection);
+    }
 }
 
-// ==================== Temporary Storage Setup ====================
-function setupTemporaryStorage() {
-    const form = document.getElementById('tempUploadForm');
-    const fileInput = document.getElementById('tempFileInput');
-    const fileNameDisplay = document.getElementById('tempFileName');
-
-    // File input change event
-    fileInput.addEventListener('change', function(e) {
-        displayFileName(e.target.files[0], fileNameDisplay);
-    });
-
-    // Drag and drop
-    setupDragAndDrop(document.querySelector('.file-input-wrapper'), fileInput);
-
-    // Form submission
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        handleTemporaryUpload();
-    });
-
-    // Update display every second for countdown
-    setInterval(displayTemporaryFiles, 1000);
-
-    // Clean up expired files every 30 seconds
-    setInterval(cleanupExpiredFiles, 30000);
-}
-
-// ==================== Drag and Drop Setup ====================
-function setupDragAndDrop(dropZone, fileInput) {
+/**
+ * Setup drag and drop functionality
+ */
+function setupDragAndDrop() {
+    const dropZone = document.getElementById('dropZone');
     if (!dropZone) return;
-
+    
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, preventDefaults, false);
     });
-
+    
     function preventDefaults(e) {
         e.preventDefault();
         e.stopPropagation();
     }
-
+    
     ['dragenter', 'dragover'].forEach(eventName => {
         dropZone.addEventListener(eventName, highlight, false);
     });
-
+    
     ['dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, unhighlight, false);
     });
-
+    
     function highlight(e) {
-        dropZone.style.borderColor = '#764ba2';
-        dropZone.style.backgroundColor = 'rgba(118, 75, 162, 0.2)';
+        dropZone.classList.add('highlight');
     }
-
+    
     function unhighlight(e) {
-        dropZone.style.borderColor = '#667eea';
-        dropZone.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+        dropZone.classList.remove('highlight');
     }
-
-    dropZone.addEventListener('drop', function(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        fileInput.files = files;
-
-        // Trigger change event
-        const event = new Event('change', { bubbles: true });
-        fileInput.dispatchEvent(event);
-    }, false);
+    
+    dropZone.addEventListener('drop', handleDrop, false);
 }
 
-// ==================== File Name Display ====================
-function displayFileName(file, displayElement) {
-    if (!file || !displayElement) return;
-
-    const fileName = file.name;
-    const fileSize = formatFileSize(file.size);
-    displayElement.textContent = `📄 ${fileName} (${fileSize})`;
+/**
+ * Handle dropped files
+ */
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    document.getElementById('fileInput').files = files;
+    handleFileSelection({target: {files: files}});
 }
 
-// ==================== File Validation ====================
+/**
+ * Handle file selection from input
+ */
+function handleFileSelection(e) {
+    const files = e.target.files;
+    const fileInfo = document.getElementById('fileInfo');
+    
+    if (files.length === 0) {
+        fileInfo.innerHTML = '';
+        return;
+    }
+    
+    let html = '<div class="file-preview">';
+    for (let file of files) {
+        const validation = validateFile(file);
+        const statusClass = validation.valid ? 'valid' : 'invalid';
+        const icon = getFileIcon(file.type);
+        html += `
+            <div class="file-item ${statusClass}">
+                <span class="file-icon">${icon}</span>
+                <div class="file-details">
+                    <div class="file-name">${escapeHtml(file.name)}</div>
+                    <div class="file-size">${formatFileSize(file.size)}</div>
+                </div>
+                <div class="file-status">
+                    ${validation.valid ? 
+                        '<span class="status-badge success">✓ Ready</span>' : 
+                        `<span class="status-badge error">✗ ${validation.error}</span>`
+                    }
+                </div>
+            </div>
+        `;
+    }
+    html += '</div>';
+    fileInfo.innerHTML = html;
+}
+
+/**
+ * Validate file before upload
+ */
 function validateFile(file) {
-    const errors = [];
-
-    // Check if file exists
-    if (!file) {
-        errors.push('No file selected');
-        return errors;
-    }
-
     // Check file size
-    if (file.size > CONFIG.MAX_FILE_SIZE) {
-        errors.push(`File size exceeds 1 GB limit. Your file is ${formatFileSize(file.size)}`);
+    if (file.size > MAX_FILE_SIZE) {
+        return {
+            valid: false,
+            error: `File exceeds 1 GB limit (${formatFileSize(file.size)})`
+        };
     }
-
+    
     // Check file extension
-    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-    if (CONFIG.BLOCKED_EXTENSIONS.includes(fileExtension)) {
-        errors.push(`File type "${fileExtension}" is not allowed (executable files blocked)`);
+    const extension = file.name.split('.').pop().toLowerCase();
+    if (ALLOWED_EXTENSIONS.includes(extension)) {
+        return {
+            valid: false,
+            error: `${extension.toUpperCase()} files not allowed`
+        };
     }
-
-    return errors;
+    
+    return { valid: true };
 }
 
-// ==================== Regular File Upload Handler ====================
-function handleFileUpload() {
+/**
+ * Handle file upload
+ */
+function handleFileUpload(e) {
+    e.preventDefault();
+    
     const fileInput = document.getElementById('fileInput');
-    const descriptionInput = document.getElementById('fileDescription');
-    const file = fileInput.files[0];
-
-    if (!file) {
-        showStatus('uploadStatus', 'Please select a file', 'error');
+    const files = fileInput.files;
+    const description = document.getElementById('fileDescription').value;
+    
+    if (files.length === 0) {
+        showMessage('Please select a file to upload', 'error');
         return;
     }
-
-    // Validate file
-    const errors = validateFile(file);
-    if (errors.length > 0) {
-        showStatus('uploadStatus', errors.join('\n'), 'error');
+    
+    const file = files[0];
+    const validation = validateFile(file);
+    
+    if (!validation.valid) {
+        showMessage(validation.error, 'error');
         return;
     }
-
+    
+    // Check NSFW warning acceptance
+    const nsfwAccepted = document.getElementById('nsfwWarning').checked;
+    if (!nsfwAccepted) {
+        showMessage('You must agree that you will not upload NSFW content', 'error');
+        return;
+    }
+    
+    // Generate file ID and create new name
+    const fileID = getNextFileID();
+    const extension = file.name.split('.').pop();
+    const newFileName = `${fileID}.${extension}`;
+    
     // Create file object
-    const fileData = {
-        id: Date.now(),
-        name: file.name,
+    const fileObject = {
+        id: fileID,
+        originalName: file.name,
+        newName: newFileName,
         size: file.size,
         type: file.type,
-        description: descriptionInput.value || 'No description',
-        uploadedAt: new Date().toLocaleString(),
+        description: description,
+        uploadTime: new Date().toISOString(),
+        downloadLink: `${BASE_URL}uploads/${newFileName}`
     };
-
-    // Save to localStorage
-    let uploadedFiles = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || [];
-    uploadedFiles.push(fileData);
-    localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(uploadedFiles));
-
-    // Show success message
-    showStatus('uploadStatus', `✅ File "${file.name}" uploaded successfully!`, 'success');
-
+    
+    // Store file (in real app, would upload to server)
+    let uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || [];
+    uploadedFiles.push(fileObject);
+    localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+    
+    // Simulate file storage
+    localStorage.setItem(`file_${fileID}`, JSON.stringify(fileObject));
+    
+    showMessage(`File uploaded successfully! ID: ${fileID}`, 'success');
+    
     // Reset form
     fileInput.value = '';
-    descriptionInput.value = '';
-    document.getElementById('fileName').textContent = '';
-
-    // Display files
+    document.getElementById('fileDescription').value = '';
+    document.getElementById('fileInfo').innerHTML = '';
+    document.getElementById('nsfwWarning').checked = false;
+    
+    // Refresh file list
     displayUploadedFiles();
 }
 
-// ==================== Temporary Upload Handler ====================
-function handleTemporaryUpload() {
-    const fileInput = document.getElementById('tempFileInput');
-    const descriptionInput = document.getElementById('tempFileDescription');
-    const expirationInput = document.getElementById('expirationTime');
-    const file = fileInput.files[0];
-
-    if (!file) {
-        showStatus('tempUploadStatus', 'Please select a file', 'error');
-        return;
-    }
-
-    if (!expirationInput.value) {
-        showStatus('tempUploadStatus', 'Please select an expiration time', 'error');
-        return;
-    }
-
-    // Validate file
-    const errors = validateFile(file);
-    if (errors.length > 0) {
-        showStatus('tempUploadStatus', errors.join('\n'), 'error');
-        return;
-    }
-
-    // Calculate expiration time
-    const expirationMinutes = parseInt(expirationInput.value);
-    const expirationTime = new Date(Date.now() + expirationMinutes * 60000);
-
-    // Create file object
-    const fileData = {
-        id: Date.now(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        description: descriptionInput.value || 'No description',
-        uploadedAt: new Date().toLocaleString(),
-        expirationTime: expirationTime.toISOString(),
-        expirationMinutes: expirationMinutes,
-    };
-
-    // Save to localStorage
-    let tempFiles = JSON.parse(localStorage.getItem(CONFIG.TEMP_STORAGE_KEY)) || [];
-    tempFiles.push(fileData);
-    localStorage.setItem(CONFIG.TEMP_STORAGE_KEY, JSON.stringify(tempFiles));
-
-    // Show success message
-    showStatus('tempUploadStatus', `✅ File "${file.name}" uploaded to temporary storage for ${expirationMinutes} minute(s)!`, 'success');
-
-    // Reset form
-    fileInput.value = '';
-    descriptionInput.value = '';
-    expirationInput.value = '';
-    document.getElementById('tempFileName').textContent = '';
-
-    // Display files
-    displayTemporaryFiles();
-}
-
-// ==================== Display Uploaded Files ====================
+/**
+ * Display uploaded files
+ */
 function displayUploadedFiles() {
-    const filesList = document.getElementById('filesList');
-    const uploadedFilesList = document.getElementById('uploadedFilesList');
-
+    const filesList = document.getElementById('uploadedFilesList');
     if (!filesList) return;
-
-    let uploadedFiles = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || [];
-
+    
+    let uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || [];
+    
     if (uploadedFiles.length === 0) {
-        uploadedFilesList.style.display = 'none';
+        filesList.innerHTML = '<div class="empty-state">No files uploaded yet</div>';
         return;
     }
-
-    uploadedFilesList.style.display = 'block';
-    filesList.innerHTML = '';
-
-    uploadedFiles.forEach(file => {
-        const fileItem = createFileItem(file, false);
-        filesList.appendChild(fileItem);
-    });
-}
-
-// ==================== Display Temporary Files ====================
-function displayTemporaryFiles() {
-    const tempFilesContainer = document.getElementById('tempFilesContainer');
-    const tempFilesList = document.getElementById('tempFilesList');
-    const emptyState = document.getElementById('emptyState');
-
-    if (!tempFilesContainer) return;
-
-    // Clean up expired files first
-    cleanupExpiredFiles();
-
-    let tempFiles = JSON.parse(localStorage.getItem(CONFIG.TEMP_STORAGE_KEY)) || [];
-
-    if (tempFiles.length === 0) {
-        if (tempFilesList) tempFilesList.style.display = 'none';
-        if (emptyState) emptyState.style.display = 'block';
-        return;
-    }
-
-    if (tempFilesList) tempFilesList.style.display = 'block';
-    if (emptyState) emptyState.style.display = 'none';
-    tempFilesContainer.innerHTML = '';
-
-    tempFiles.forEach(file => {
-        const fileItem = createTemporaryFileItem(file);
-        tempFilesContainer.appendChild(fileItem);
-    });
-}
-
-// ==================== Create File Item (Regular) ====================
-function createFileItem(file, isTemporary = false) {
-    const fileItem = document.createElement('div');
-    fileItem.className = 'file-item';
-
-    const fileIcon = getFileIcon(file.type || file.name);
-
-    fileItem.innerHTML = `
-        <div class="file-item-header">
-            <span class="file-icon">${fileIcon}</span>
-            <div class="file-item-name">${escapeHtml(file.name)}</div>
-        </div>
-        <div class="file-item-info">
-            <span>Size: ${formatFileSize(file.size)}</span>
-            <span>Type: ${file.type || 'Unknown'}</span>
-        </div>
-        <div class="file-item-info">
-            <span>Uploaded: ${file.uploadedAt}</span>
-        </div>
-        ${file.description ? `<div class="file-item-description">${escapeHtml(file.description)}</div>` : ''}
-        <div class="file-item-actions">
-            <button class="btn btn-secondary" onclick="downloadFile(${file.id}, ${isTemporary})">Download</button>
-            <button class="btn btn-danger" onclick="deleteFile(${file.id}, ${isTemporary})">Delete</button>
-        </div>
-    `;
-
-    return fileItem;
-}
-
-// ==================== Create Temporary File Item ====================
-function createTemporaryFileItem(file) {
-    const fileItem = document.createElement('div');
-    fileItem.className = 'file-item';
-
-    const fileIcon = getFileIcon(file.type || file.name);
-    const expirationTime = new Date(file.expirationTime);
-    const now = new Date();
-    const timeRemaining = expirationTime - now;
-    const isExpired = timeRemaining <= 0;
-
-    let expirationDisplay = '';
-    if (isExpired) {
-        expirationDisplay = '<div class="temp-file-expiration temp-file-expired">⏰ EXPIRED</div>';
-    } else {
-        const minutes = Math.floor(timeRemaining / 60000);
-        const seconds = Math.floor((timeRemaining % 60000) / 1000);
-        expirationDisplay = `<div class="temp-file-expiration">⏰ ${minutes}:${String(seconds).padStart(2, '0')} remaining</div>`;
-    }
-
-    fileItem.innerHTML = `
-        <div class="file-item-header">
-            <span class="file-icon">${fileIcon}</span>
-            <div class="file-item-name">${escapeHtml(file.name)}</div>
-        </div>
-        ${expirationDisplay}
-        <div class="file-item-info">
-            <span>Size: ${formatFileSize(file.size)}</span>
-            <span>Type: ${file.type || 'Unknown'}</span>
-        </div>
-        <div class="file-item-info">
-            <span>Uploaded: ${file.uploadedAt}</span>
-        </div>
-        ${file.description ? `<div class="file-item-description">${escapeHtml(file.description)}</div>` : ''}
-        <div class="file-item-actions">
-            <button class="btn btn-secondary" onclick="downloadFile(${file.id}, true)">Download</button>
-            <button class="btn btn-danger" onclick="deleteFile(${file.id}, true)">Delete</button>
-        </div>
-    `;
-
-    return fileItem;
-}
-
-// ==================== File Operations ====================
-function downloadFile(fileId, isTemporary = false) {
-    const storageKey = isTemporary ? CONFIG.TEMP_STORAGE_KEY : CONFIG.STORAGE_KEY;
-    let files = JSON.parse(localStorage.getItem(storageKey)) || [];
-    const file = files.find(f => f.id === fileId);
-
-    if (!file) {
-        alert('File not found');
-        return;
-    }
-
-    // In a real implementation, this would download the actual file
-    alert(`Download initiated for: ${file.name}\n\nNote: This is a demo. In a real application, the file would be downloaded.`);
-}
-
-function deleteFile(fileId, isTemporary = false) {
-    const storageKey = isTemporary ? CONFIG.TEMP_STORAGE_KEY : CONFIG.STORAGE_KEY;
-    let files = JSON.parse(localStorage.getItem(storageKey)) || [];
     
-    const fileIndex = files.findIndex(f => f.id === fileId);
-    if (fileIndex !== -1) {
-        const fileName = files[fileIndex].name;
-        files.splice(fileIndex, 1);
-        localStorage.setItem(storageKey, JSON.stringify(files));
+    let html = '<div class="files-container">';
+    
+    uploadedFiles.forEach((file, index) => {
+        const icon = getFileIcon(file.type);
+        const uploadDate = new Date(file.uploadTime).toLocaleString();
         
-        if (isTemporary) {
-            displayTemporaryFiles();
-        } else {
-            displayUploadedFiles();
-        }
-        
-        showStatus(isTemporary ? 'tempUploadStatus' : 'uploadStatus', `✅ File "${fileName}" deleted successfully`, 'success');
-    }
-}
-
-function cleanupExpiredFiles() {
-    let tempFiles = JSON.parse(localStorage.getItem(CONFIG.TEMP_STORAGE_KEY)) || [];
-    const now = new Date();
-    
-    const validFiles = tempFiles.filter(file => {
-        return new Date(file.expirationTime) > now;
+        html += `
+            <div class="file-card">
+                <div class="file-card-header">
+                    <span class="file-icon">${icon}</span>
+                    <div class="file-id-badge">${file.id}</div>
+                </div>
+                <div class="file-card-content">
+                    <div class="file-name" title="${escapeHtml(file.originalName)}">
+                        ${escapeHtml(file.originalName)}
+                    </div>
+                    <div class="file-meta">
+                        <span>${formatFileSize(file.size)}</span>
+                        <span>•</span>
+                        <span>${uploadDate}</span>
+                    </div>
+                    ${file.description ? `<div class="file-description">${escapeHtml(file.description)}</div>` : ''}
+                </div>
+                <div class="file-card-actions">
+                    <div class="copy-link-container">
+                        <input type="text" class="link-input" value="${file.downloadLink}" readonly>
+                        <button class="btn-copy" onclick="copyToClipboard('${file.downloadLink}', this)">
+                            📋 Copy Link
+                        </button>
+                    </div>
+                    <button class="btn-delete" onclick="deleteFile(${index})">🗑️ Delete</button>
+                </div>
+            </div>
+        `;
     });
     
-    if (validFiles.length !== tempFiles.length) {
-        localStorage.setItem(CONFIG.TEMP_STORAGE_KEY, JSON.stringify(validFiles));
+    html += '</div>';
+    filesList.innerHTML = html;
+}
+
+/**
+ * Copy download link to clipboard
+ */
+function copyToClipboard(link, button) {
+    navigator.clipboard.writeText(link).then(() => {
+        const originalText = button.textContent;
+        button.textContent = '✓ Copied!';
+        button.classList.add('copied');
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        showMessage('Failed to copy link', 'error');
+    });
+}
+
+/**
+ * Delete uploaded file
+ */
+function deleteFile(index) {
+    if (confirm('Are you sure you want to delete this file?')) {
+        let uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || [];
+        const fileID = uploadedFiles[index].id;
+        
+        uploadedFiles.splice(index, 1);
+        localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+        localStorage.removeItem(`file_${fileID}`);
+        
+        showMessage('File deleted successfully', 'success');
+        displayUploadedFiles();
     }
 }
 
-// ==================== Utility Functions ====================
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Format file size for display
+ */
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
-
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 }
 
-function getFileIcon(fileNameOrType) {
-    const type = fileNameOrType.toLowerCase();
-
-    if (type.includes('image')) return '';
-    if (type.includes('video')) return '';
-    if (type.includes('audio')) return '';
-    if (type.includes('pdf')) return '';
-    if (type.includes('zip') || type.includes('rar') || type.includes('7z') || type.includes('archive')) return '';
-    if (type.includes('word') || type.includes('document') || type.includes('.doc')) return '';
-    if (type.includes('spreadsheet') || type.includes('sheet') || type.includes('.xls')) return '';
-    if (type.includes('presentation') || type.includes('powerpoint') || type.includes('.ppt')) return '';
-    if (type.includes('text') || type.includes('.txt')) return '';
-    if (type.includes('json') || type.includes('xml') || type.includes('code')) return '';
-
+/**
+ * Get file icon based on type
+ */
+function getFileIcon(fileType) {
+    if (!fileType) return '';
+    
+    if (fileType.includes('image')) return '';
+    if (fileType.includes('video')) return '';
+    if (fileType.includes('audio')) return '';
+    if (fileType.includes('pdf')) return '';
+    if (fileType.includes('text')) return '';
+    if (fileType.includes('zip') || fileType.includes('rar') || fileType.includes('7z')) return '';
+    if (fileType.includes('word')) return '';
+    if (fileType.includes('sheet')) return '';
+    if (fileType.includes('presentation')) return '';
+    
     return '';
 }
 
-function showStatus(elementId, message, type) {
-    const statusElement = document.getElementById(elementId);
-    if (!statusElement) return;
-
-    statusElement.textContent = message;
-    statusElement.className = `status-message ${type}`;
-    statusElement.style.display = 'block';
-
-    // Auto-hide success messages after 5 seconds
-    if (type === 'success') {
-        setTimeout(() => {
-            statusElement.style.display = 'none';
-        }, 5000);
-    }
+/**
+ * Escape HTML special characters
+ */
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
 }
 
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+/**
+ * Show status message
+ */
+function showMessage(message, type) {
+    const messageContainer = document.getElementById('message');
+    if (!messageContainer) return;
+    
+    messageContainer.textContent = message;
+    messageContainer.className = `message message-${type}`;
+    messageContainer.style.display = 'block';
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            messageContainer.style.display = 'none';
+        }, 4000);
+    }
 }
